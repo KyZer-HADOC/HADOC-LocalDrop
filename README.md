@@ -1,8 +1,8 @@
 # HADOC LocalDrop
 
-**Local file sharing and chat between one Windows PC and one mobile phone.**
+**Direct file sharing and chat between one Windows PC and one mobile phone.**
 
-HADOC LocalDrop turns your Windows PC into a private file-sharing station. Open the companion interface on your phone by scanning the QR code shown in the Windows app. No Android/iOS app or cloud account is required.
+HADOC LocalDrop turns your Windows PC into a private local transfer hub. Scan the QR code shown by the Windows desktop app to open the companion workspace in your phone browser. No separate phone app, cloud account, or internet connection is required when both devices share a local network.
 
 <p align="center">
   <strong>Windows 10 / 11 · PC ↔ Mobile · Wi-Fi / LAN · Offline-ready</strong>
@@ -12,75 +12,89 @@ HADOC LocalDrop turns your Windows PC into a private file-sharing station. Open 
 
 **[Download HADOC LocalDrop Setup.exe](https://github.com/KyZer-HADOC/HADOC-LocalDrop/releases/latest/download/HADOC-LocalDrop-Setup.exe)**
 
-You can also visit the [Releases page](https://github.com/KyZer-HADOC/HADOC-LocalDrop/releases) to see version notes and previous builds.
+[View all releases](https://github.com/KyZer-HADOC/HADOC-LocalDrop/releases) · [View build logs](https://github.com/KyZer-HADOC/HADOC-LocalDrop/actions)
 
-## Features in V1
+## Features
 
-- QR pairing from the Windows app to a phone browser
-- Two-way file transfer between the PC and the paired phone
-- Local chat between the PC and phone
+- QR pairing from the Windows PC app to a phone browser
+- One unified chat and file-sharing workspace after connection
+- Send messages between the PC and the connected phone
+- Phone → PC uploads with live progress and a visible received-files list on Windows
+- PC → Phone downloads for files added in the Windows app
 - Multiple file selection from the phone
-- Transfer progress feedback while sending files
-- Share selected PC files for download on the phone
-- Works over a shared Wi-Fi network, Ethernet LAN, Windows Mobile Hotspot, or phone hotspot
-- Local-network transfer without cloud storage or internet access
+- Files received on the PC are saved to `Downloads\HADOC LocalDrop\Received`
+- Private local network transfer over Wi-Fi or Ethernet
+- Works with a Wi-Fi router even when that router has no internet, Windows Mobile Hotspot, or a phone hotspot
 - Fresh random pairing token each time the PC server starts
+- Phone companion works in a modern browser; no Android/iOS app installation
 
-> **Scope:** This project intentionally supports PC ↔ Mobile only. PC-to-PC and phone-to-phone transfers are not supported.
+> **Scope:** PC ↔ Mobile only. PC-to-PC and phone-to-phone transfers are intentionally not supported.
 
-## Install
+## Install and connect
 
-1. Download `HADOC-LocalDrop-Setup.exe` from the link above.
+1. Download `HADOC-LocalDrop-Setup.exe` from the latest release.
 2. Run the installer on a Windows 10 or Windows 11 x64 PC.
-3. Complete the setup wizard and launch HADOC LocalDrop.
-4. Connect your PC and phone to the same Wi-Fi network, or connect one device to the other's hotspot.
+3. Launch HADOC LocalDrop.
+4. Connect the PC and phone to the same Wi-Fi network, or connect one device to the other's hotspot.
 5. Click **Start LocalDrop** in the Windows app.
-6. Select the network address that your phone can reach.
-7. Scan the QR code with your phone camera and open the link.
-8. Use the **Files** and **Chat** sections in the phone browser.
+6. Select the network address that the phone can reach.
+7. Scan the QR code with the phone camera and open the link.
+8. After pairing, the phone opens the single workspace for chat and file sharing.
 
-The phone does not need a separate app installation.
+The phone does not need a separate app installation. The PC app shows the connected phone workspace after pairing.
+
+## Send and receive files
+
+### Phone → PC
+
+1. In the phone workspace, tap **Add files** beside the message box.
+2. Select one or more files.
+3. Watch the upload progress in the conversation.
+4. After completion, the received file appears in the Windows app under **Received on PC**.
+
+Received files are saved in:
+
+`%USERPROFILE%\Downloads\HADOC LocalDrop\Received`
+
+Use **Open folder** in the Windows app to view them in File Explorer.
+
+### PC → Phone
+
+1. In the Windows connected workspace, click **Add files**.
+2. Select one or more files.
+3. The files appear in the phone conversation as downloadable items.
+4. Tap **Download to phone** beside the file.
+
+The phone checks for newly shared PC files while the workspace is open.
 
 ## Use without internet
 
-A router can provide a local network even when its internet connection is unavailable. LocalDrop serves the phone interface directly from the Windows PC, and file data stays on that local network.
+The phone interface is served directly by the Windows PC. Pairing, chat, and file transfer use the local network and do not send file data through cloud storage.
 
 Supported arrangements:
 - PC and phone connected to the same Wi-Fi router, even if the router has no internet.
 - Windows Mobile Hotspot enabled on the PC and the phone connected to it.
-- Phone hotspot enabled and the PC connected to the phone hotspot.
+- Phone hotspot enabled and the PC connected to that hotspot.
 - PC connected by Ethernet and phone connected to the same router's Wi-Fi.
 
-If the PC has multiple network adapters, choose the address that belongs to the network shared with the phone.
-
-## Where received files are saved
-
-Files sent from the phone are saved to:
-
-`Downloads\HADOC LocalDrop\Received`
-
-To send files from the PC to the phone:
-1. Open the **Share Files** tab in the Windows app.
-2. Click **Add files** and select the files.
-3. Open **Shared from your PC** on the phone.
-4. Tap **Download** beside the file.
+If the PC has more than one network adapter, select the address that belongs to the network shared with the phone.
 
 ## Speed and connectivity
 
-V1 streams files directly over the local network; it does not upload them to a cloud service. Real-world speed depends on the Wi-Fi standard, signal strength, router or hotspot, phone, PC network adapter, and storage device.
+File contents are streamed directly between the phone browser and the PC over the local network. Actual speed depends on the Wi-Fi standard, signal quality, router or hotspot, phone, PC network adapter, and storage device.
 
-Bluetooth is not used as a speed booster. Adding Bluetooth to an active Wi-Fi transfer does not make that Wi-Fi transfer faster. Wi-Fi is the preferred high-throughput transport. Wi-Fi Direct automation and Bluetooth-based fallback are future enhancements, not part of V1.
+Bluetooth is not used as a speed booster. Adding Bluetooth to an active Wi-Fi transfer does not make the Wi-Fi transfer faster. Wi-Fi is the preferred high-throughput transport. Wi-Fi Direct automation and Bluetooth fallback are future enhancements, not part of this release.
 
 ## Security
 
-- The QR code contains a fresh random pairing token generated when the local server starts.
+- A new random pairing token is generated whenever the PC server starts.
 - Treat the QR code and connection URL like a password. Only scan/share it with a device you trust.
 - Use a trusted private network.
 - If Windows Firewall asks, allow LocalDrop on **Private networks** only.
-- Stop the server when you finish sharing. Stopping it invalidates the active pairing token.
+- Stop LocalDrop when you finish sharing. Stopping the server invalidates the active pairing token.
 - Do not expose the LocalDrop port to the public internet.
 
-V1 uses HTTP on the local network, not end-to-end encrypted transport. Use it only on a trusted network; encryption and stronger pairing controls are planned improvements.
+The current local web connection uses HTTP on the LAN, not end-to-end encrypted transport. Use it only on a trusted network. Stronger encrypted pairing and transport are planned improvements.
 
 ## Build from source
 
@@ -105,21 +119,15 @@ Compile `installer/LocalDrop.iss` with Inno Setup 6. The installer is written to
 
 ## Continuous builds
 
-Every push to `main` runs the **Build Windows Setup** GitHub Actions workflow. The workflow:
-1. Restores and publishes the self-contained Windows x64 app.
-2. Builds the installer using Inno Setup.
-3. Uploads `HADOC-LocalDrop-Setup.exe` as a workflow artifact.
-4. Publishes the tagged release when a version release is requested.
+Every push to `main` runs the **Build Windows Setup** GitHub Actions workflow. It restores and publishes the self-contained app, builds the installer, and uploads the Setup.exe artifact. Version releases attach the same installer to GitHub Releases.
 
-Open the [Actions page](https://github.com/KyZer-HADOC/HADOC-LocalDrop/actions) to inspect build logs.
-
-## Current V1 limitations
+## Current release limits
 
 - One phone can be paired with the PC at a time.
 - The phone companion runs in a modern mobile browser.
-- Wi-Fi Direct automation and Bluetooth fallback are not yet implemented.
-- Transfer speed has not yet been benchmarked across different phones and network adapters.
-- The initial release is a functional starting point; further testing and optimization are ongoing.
+- Wi-Fi Direct automation and Bluetooth fallback are not implemented.
+- Transfer speed has not yet been benchmarked across different phone and network combinations.
+- The current release is an early functional version; device-to-device testing and further optimization are ongoing.
 
 ---
 
