@@ -30,10 +30,10 @@ public partial class MainWindow : Window
         DataContext = this;
 
         _server.StatusChanged += message =>
-            Dispatcher.BeginInvoke(() => StatusText.Text = message);
+            Dispatcher.Invoke(() => StatusText.Text = message);
 
         _server.DeviceConnected += name =>
-            Dispatcher.BeginInvoke(() =>
+            Dispatcher.Invoke(() =>
             {
                 ConnectedDeviceText.Text = name;
                 ConnectionStatusText.Text = "LIVE";
@@ -43,7 +43,7 @@ public partial class MainWindow : Window
             });
 
         _server.DeviceDisconnected += () =>
-            Dispatcher.BeginInvoke(() =>
+            Dispatcher.Invoke(() =>
             {
                 WorkspacePanel.Visibility = Visibility.Collapsed;
                 ConnectPanel.Visibility = Visibility.Visible;
@@ -52,14 +52,14 @@ public partial class MainWindow : Window
             });
 
         _server.ChatReceived += message =>
-            Dispatcher.BeginInvoke(() =>
+            Dispatcher.Invoke(() =>
             {
                 ChatMessages.Add(message);
                 ChatList.ScrollIntoView(message);
             });
 
         _server.FileReceived += file =>
-            Dispatcher.BeginInvoke(() =>
+            Dispatcher.Invoke(() =>
             {
                 ReceivedFiles.Insert(0, file);
                 StatusText.Text = "Received " + file.Name + " · " + SharedFile.FormatSize(file.Size);
