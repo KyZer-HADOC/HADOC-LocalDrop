@@ -1,0 +1,72 @@
+name: Build Windows Setup
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Build Windows 10/11 installer
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore src/HADOC.LocalDrop/HADOC.LocalDrop.csproj
+
+      - name: Publish self-contained Windows x64 app
+        run: >
+          dotnet publish src/HADOC.LocalDrop/HADOC.LocalDrop.csproj
+          --configuration Release
+          --runtime win-x64
+          --self-contained true
+          -p:PublishSingleFile=false
+          -p:PublishTrimmed=false
+          --output src/HADOC.LocalDrop/bin/Release/net8.0-windows/win-x64/publish
+
+      - name: Install Inno Setup
+        run: choco install innosetup --yes --no-progress
+
+      - name: Build Setup.exe
+        shell: pwsh
+        run: |
+          $programFilesX86 = [Environment]::GetFolderPath('ProgramFilesX86')
+          $iscc = Join-Path $programFilesX86 'Inno Setup 6\ISCC.exe'
+          if (-not (Test-Path $iscc)) {
+            $programFiles = [Environment]::GetFolderPath('ProgramFiles')
+            $iscc = Join-Path $programFiles 'Inno Setup 6\ISCC.exe'
+          }
+          if (-not (Test-Path $iscc)) {
+            throw "Inno Setup compiler was not found."
+          }
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          & $iscc installer/LocalDrop.iss
+          if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed with exit code $LASTEXITCODE" }
+
+      - name: Upload Setup.exe artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: HADOC-LocalDrop-Setup
+          path: artifacts/HADOC-LocalDrop-Setup.exe
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish GitHub Release for version tags
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/HADOC-LocalDrop-Setup.exe
+          generate_release_notes: true
