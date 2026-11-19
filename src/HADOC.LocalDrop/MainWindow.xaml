@@ -97,7 +97,7 @@
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="HADOC LocalDrop" FontSize="22" FontWeight="Bold" LetterSpacing="-0.5"/>
+                    <TextBlock Text="HADOC LocalDrop" FontSize="22" FontWeight="Bold"/>
                     <TextBlock Text="PC  ↔  MOBILE     /     DIRECT LOCAL TRANSFER"
                                Foreground="#8492A5" FontSize="9" Margin="1,4,0,0"/>
                 </StackPanel>
@@ -139,7 +139,7 @@
 
                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="28,0,0,0">
                         <TextBlock Text="YOUR PERSONAL FILE BRIDGE" Foreground="#F07980"
-                                   FontSize="10" FontWeight="Bold" CharacterSpacing="1.5"/>
+                                   FontSize="10" FontWeight="Bold"/>
                         <TextBlock Text="Connect your phone." FontSize="29" FontWeight="Bold"
                                    Margin="0,11,0,0"/>
                         <TextBlock Text="Scan the QR code to open your private LocalDrop workspace. No phone app or internet connection is needed."
@@ -185,7 +185,7 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock Text="CONNECTED DEVICE" Foreground="#F07980"
-                               FontSize="9" FontWeight="Bold" CharacterSpacing="1.4"/>
+                               FontSize="9" FontWeight="Bold"/>
                     <TextBlock x:Name="ConnectedDeviceText" Text="Mobile phone"
                                FontSize="21" FontWeight="Bold" Margin="0,3,0,0"/>
                 </StackPanel>
@@ -244,7 +244,7 @@
 
                 <StackPanel Grid.Column="1" Margin="9,0,0,0">
                     <Border Background="#121923" BorderBrush="#273346" BorderThickness="1"
-                            CornerRadius="18" Padding="15" Height="*">
+                            CornerRadius="18" Padding="15">
                         <Grid>
                             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                             <DockPanel Margin="1,0,1,10">
