@@ -10,7 +10,6 @@
 <body>
   <div class="ambient ambient-one"></div>
   <div class="ambient ambient-two"></div>
-
   <main class="app-shell">
     <header class="app-header">
       <div class="brand">
@@ -34,7 +33,7 @@
       <div class="connect-copy">
         <span class="eyebrow">PRIVATE LOCAL CONNECTION</span>
         <h1>Connect to<br><span>your PC.</span></h1>
-        <p id="pairingMessage">Opening your secure LocalDrop session…</p>
+        <p id="pairingMessage">Opening your LocalDrop session…</p>
         <div class="connect-note"><span class="signal-dot"></span> Same Wi-Fi or hotspot · Internet not required</div>
         <button id="retryButton" class="button button-primary hidden" type="button">Try connection again</button>
       </div>
@@ -59,8 +58,9 @@
       <div class="composer-wrap">
         <div class="composer-hint">MESSAGE OR SHARE A FILE</div>
         <form id="chatForm" class="composer">
-          <input id="chatInput" type="text" maxlength="2000" autocomplete="off"
-                 placeholder="Type a message..." aria-label="Type a message">
+          <textarea id="chatInput" rows="1" maxlength="2000" autocomplete="off"
+                    placeholder="Type a message… (Shift + Enter for a new line)"
+                    aria-label="Type a message"></textarea>
           <button class="send-button" type="submit" aria-label="Send message" title="Send">↑</button>
           <input id="fileInput" type="file" multiple hidden>
           <button id="addFilesButton" class="add-files-button" type="button">
@@ -73,10 +73,8 @@
         </div>
       </div>
     </section>
-
     <footer class="app-footer"><span>HADOC <b>LocalDrop</b></span><span>BUILT BY KyZer_HADOC</span></footer>
   </main>
-
   <script src="/app.js"></script>
 </body>
 </html>

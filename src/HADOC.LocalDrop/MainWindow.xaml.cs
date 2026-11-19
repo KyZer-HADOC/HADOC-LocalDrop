@@ -20,9 +20,8 @@ public partial class MainWindow : Window
     private string? _currentUrl;
     private bool _isClosing;
 
+    public ObservableCollection<ChatItem> ChatMessages { get; } = new();
     public ObservableCollection<SharedFile> SharedFiles { get; } = new();
-    public ObservableCollection<ReceivedFile> ReceivedFiles { get; } = new();
-    public ObservableCollection<ChatMessage> ChatMessages { get; } = new();
 
     public MainWindow()
     {
@@ -36,7 +35,7 @@ public partial class MainWindow : Window
             Dispatcher.Invoke(() =>
             {
                 ConnectedDeviceText.Text = name;
-                ConnectionStatusText.Text = "LIVE";
+                ConnectionStatusText.Text = "CONNECTED";
                 ConnectPanel.Visibility = Visibility.Collapsed;
                 WorkspacePanel.Visibility = Visibility.Visible;
                 StatusText.Text = "Connected to " + name;
@@ -49,31 +48,22 @@ public partial class MainWindow : Window
                 ConnectPanel.Visibility = Visibility.Visible;
                 ConnectedDeviceText.Text = "Mobile phone";
                 ConnectionStatusText.Text = "OFFLINE";
+                StatusText.Text = "Phone disconnected · Scan the QR code to reconnect.";
             });
 
         _server.ChatReceived += message =>
             Dispatcher.Invoke(() =>
             {
-                ChatMessages.Add(message);
-                ChatList.ScrollIntoView(message);
+                var item = new ChatItem(message, isMine: false);
+                ChatMessages.Add(item);
+                ChatList.ScrollIntoView(item);
             });
 
         _server.FileReceived += file =>
-            Dispatcher.Invoke(() =>
-            {
-                ReceivedFiles.Insert(0, file);
-                StatusText.Text = "Received " + file.Name + " · " + SharedFile.FormatSize(file.Size);
-            });
+            Dispatcher.Invoke(() => AddReceivedFileToConversation(file));
 
-        try
-        {
-            foreach (var file in _server.GetReceivedFiles())
-                ReceivedFiles.Add(file);
-        }
-        catch (Exception ex)
-        {
-            StatusText.Text = "Receive folder unavailable: " + ex.Message;
-        }
+        _server.TransferProgressChanged += progress =>
+            Dispatcher.Invoke(() => UpdateTransferInConversation(progress));
     }
 
     private async void StartStop_Click(object sender, RoutedEventArgs e)
@@ -86,7 +76,7 @@ public partial class MainWindow : Window
                 await _server.StopAsync();
                 ResetPairingView();
                 StartStopButton.Content = "Start LocalDrop";
-                StartStopButton.Background = AccentBrush("#E54852");
+                StartStopButton.Background = AccentBrush("#F0525D");
             }
             else
             {
@@ -128,10 +118,13 @@ public partial class MainWindow : Window
         QrImage.Source = null;
         QrPlaceholder.Visibility = Visibility.Visible;
         AddressBox.ItemsSource = null;
-        UrlText.Text = "Choose the network shared with your phone.";
+        UrlText.Text = "Choose the Wi-Fi or hotspot address for your phone.";
         _currentUrl = null;
         ConnectedDeviceText.Text = "Mobile phone";
         ConnectionStatusText.Text = "OFFLINE";
+        ChatMessages.Clear();
+        SharedFiles.Clear();
+        StatusText.Text = "Server stopped";
     }
 
     private void AddressBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -150,7 +143,7 @@ public partial class MainWindow : Window
 
         using var generator = new QRCodeGenerator();
         using var data = generator.CreateQrCode(_currentUrl, QRCodeGenerator.ECCLevel.Q);
-        var png = new PngByteQRCode(data).GetGraphic(9);
+        var png = new PngByteQRCode(data).GetGraphic(10);
 
         var bitmap = new BitmapImage();
         using var stream = new MemoryStream(png);
@@ -180,9 +173,15 @@ public partial class MainWindow : Window
 
     private void AddFiles_Click(object sender, RoutedEventArgs e)
     {
+        if (!_server.IsPaired)
+        {
+            StatusText.Text = "Connect your phone before sharing files.";
+            return;
+        }
+
         var dialog = new OpenFileDialog
         {
-            Title = "Select files to send to your phone",
+            Title = "Select files to share with your phone",
             Multiselect = true,
             CheckFileExists = true
         };
@@ -197,7 +196,13 @@ public partial class MainWindow : Window
 
             try
             {
-                SharedFiles.Add(_server.AddSharedFile(path));
+                var file = _server.AddSharedFile(path);
+                SharedFiles.Add(file);
+                var item = new ChatItem(
+                    file.Id, "PC", file.Name, file.Size, file.Path,
+                    isMine: true, transferStatus: "Shared with phone · Waiting for download");
+                ChatMessages.Add(item);
+                ChatList.ScrollIntoView(item);
             }
             catch (Exception ex)
             {
@@ -206,16 +211,7 @@ public partial class MainWindow : Window
             }
         }
 
-        StatusText.Text = SharedFiles.Count + " file(s) ready for your phone.";
-    }
-
-    private void RemoveSharedFile_Click(object sender, RoutedEventArgs e)
-    {
-        if (SharedFilesList.SelectedItem is not SharedFile file)
-            return;
-
-        _server.RemoveSharedFile(file.Id);
-        SharedFiles.Remove(file);
+        StatusText.Text = "Files added to the conversation · Phone can download them.";
     }
 
     private async void SendChat_Click(object sender, RoutedEventArgs e) =>
@@ -223,7 +219,8 @@ public partial class MainWindow : Window
 
     private async void ChatInput_KeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Enter)
+        // Enter inserts a new line. Ctrl+Enter sends the message.
+        if (e.Key == Key.Enter && Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
         {
             e.Handled = true;
             await SendChatAsync();
@@ -236,15 +233,16 @@ public partial class MainWindow : Window
         if (text.Length == 0)
             return;
 
-        if (!_server.IsRunning || !_server.IsPhoneConnected)
+        if (!_server.IsPhoneConnected)
         {
-            StatusText.Text = "Your phone is reconnecting. Please wait.";
+            StatusText.Text = "Your phone is not live yet. Wait for it to reconnect.";
             return;
         }
 
         var message = new ChatMessage("PC", text, DateTimeOffset.Now);
-        ChatMessages.Add(message);
-        ChatList.ScrollIntoView(message);
+        var item = new ChatItem(message, isMine: true);
+        ChatMessages.Add(item);
+        ChatList.ScrollIntoView(item);
         ChatInput.Clear();
 
         try
@@ -257,16 +255,108 @@ public partial class MainWindow : Window
         }
     }
 
+    private void AddReceivedFileToConversation(ReceivedFile file)
+    {
+        var item = ChatMessages.FirstOrDefault(entry => entry.FileId == file.Id);
+        if (item is null)
+        {
+            item = new ChatItem(
+                file.Id, "PHONE", file.Name, file.Size, file.Path,
+                isMine: false, transferStatus: "Received on this PC");
+            ChatMessages.Add(item);
+        }
+        else
+        {
+            item.FileName = file.Name;
+            item.FileSize = file.Size;
+            item.FilePath = file.Path;
+            item.Progress = 100;
+            item.TransferStatus = "Received on this PC";
+        }
+
+        item.Progress = 100;
+        item.FilePath = file.Path;
+        item.TransferStatus = "Received on this PC · " + file.SizeLabel;
+        ChatList.ScrollIntoView(item);
+        StatusText.Text = "Received " + file.Name + " · " + file.SizeLabel;
+    }
+
+    private void UpdateTransferInConversation(TransferProgress progress)
+    {
+        if (string.IsNullOrWhiteSpace(progress.Id))
+            return;
+
+        var isPhoneToPc = string.Equals(progress.Direction, "phone-to-pc",
+            StringComparison.OrdinalIgnoreCase);
+
+        var item = ChatMessages.FirstOrDefault(entry => entry.FileId == progress.Id);
+        if (item is null)
+        {
+            item = new ChatItem(
+                progress.Id,
+                isPhoneToPc ? "PHONE" : "PC",
+                string.IsNullOrWhiteSpace(progress.Name) ? "File" : progress.Name,
+                progress.Total,
+                null,
+                isMine: !isPhoneToPc,
+                transferStatus: isPhoneToPc ? "Receiving from phone" : "Sending to phone");
+            ChatMessages.Add(item);
+        }
+
+        if (!string.IsNullOrWhiteSpace(progress.Name))
+            item.FileName = progress.Name;
+        if (progress.Total > 0)
+            item.FileSize = progress.Total;
+
+        item.Progress = progress.Percent;
+        var rate = progress.BytesPerSecond > 0
+            ? " · " + FormatRate(progress.BytesPerSecond)
+            : "";
+
+        item.TransferStatus = progress.State switch
+        {
+            "completed" when isPhoneToPc => "Received on this PC · " + SharedFile.FormatSize(progress.Total),
+            "completed" => "Downloaded to phone · " + SharedFile.FormatSize(progress.Total),
+            "failed" => "Transfer failed · Please retry",
+            _ when isPhoneToPc => $"Receiving from phone · {progress.Percent:0}%{rate}",
+            _ => $"Sending to phone · {progress.Percent:0}%{rate}"
+        };
+
+        if (progress.State == "completed")
+            item.Progress = 100;
+
+        ChatList.ScrollIntoView(item);
+    }
+
+    private static string FormatRate(double bytesPerSecond)
+    {
+        var mb = bytesPerSecond / (1024d * 1024d);
+        return mb >= 1 ? $"{mb:0.0} MB/s" : $"{bytesPerSecond / 1024d:0} KB/s";
+    }
+
+    private void OpenChatFile_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button button || button.Tag is not string path ||
+            string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+            return;
+
+        try
+        {
+            Process.Start(new ProcessStartInfo { FileName = path, UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, ex.Message, "Could not open file",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
     private void OpenReceiveFolder_Click(object sender, RoutedEventArgs e)
     {
         try
         {
             var folder = _server.GetReceivedFolder();
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = folder,
-                UseShellExecute = true
-            });
+            Process.Start(new ProcessStartInfo { FileName = folder, UseShellExecute = true });
         }
         catch (Exception ex)
         {
@@ -293,13 +383,7 @@ public partial class MainWindow : Window
             return;
 
         _isClosing = true;
-        try
-        {
-            await _server.DisposeAsync();
-        }
-        catch
-        {
-            // The server is being stopped as the app closes.
-        }
+        try { await _server.DisposeAsync(); }
+        catch { /* Stop the local server during shutdown. */ }
     }
 }

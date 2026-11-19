@@ -31,6 +31,7 @@ public sealed class LocalDropServer : IAsyncDisposable
     public event Action<string>? DeviceConnected;
     public event Action? DeviceDisconnected;
     public event Action<ReceivedFile>? FileReceived;
+    public event Action<TransferProgress>? TransferProgressChanged;
     public event Action<string>? StatusChanged;
 
     public bool IsRunning => _app is not null;
@@ -53,7 +54,7 @@ public sealed class LocalDropServer : IAsyncDisposable
             .Select(path => new FileInfo(path))
             .Where(info => info.Exists)
             .OrderByDescending(info => info.LastWriteTimeUtc)
-            .Select(info => new ReceivedFile(info.Name, info.FullName, info.Length, info.LastWriteTime))
+            .Select(info => new ReceivedFile(Guid.NewGuid().ToString("N"), info.Name, info.FullName, info.Length, info.LastWriteTime))
             .ToArray();
     }
 
@@ -201,6 +202,43 @@ public sealed class LocalDropServer : IAsyncDisposable
             await context.Response.WriteAsJsonAsync(files);
         });
 
+        app.MapPost("/api/transfer/progress", async context =>
+        {
+            if (!IsAuthorized(context))
+            {
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                return;
+            }
+
+            TransferProgress? update;
+            try
+            {
+                update = await JsonSerializer.DeserializeAsync<TransferProgress>(
+                    context.Request.Body,
+                    new JsonSerializerOptions(JsonSerializerDefaults.Web),
+                    context.RequestAborted);
+            }
+            catch (JsonException)
+            {
+                context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                return;
+            }
+
+            if (update is null ||
+                string.IsNullOrWhiteSpace(update.Id) || update.Id.Length > 128 ||
+                string.IsNullOrWhiteSpace(update.Name) || update.Name.Length > 260 ||
+                update.Total < 0 || update.Loaded < 0 ||
+                (update.Direction != "phone-to-pc" && update.Direction != "pc-to-phone") ||
+                (update.State != "running" && update.State != "completed" && update.State != "failed"))
+            {
+                context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                return;
+            }
+
+            TransferProgressChanged?.Invoke(update);
+            context.Response.StatusCode = StatusCodes.Status204NoContent;
+        });
+
         app.MapGet("/api/download/{id}", async context =>
         {
             if (!IsAuthorized(context))
@@ -238,6 +276,10 @@ public sealed class LocalDropServer : IAsyncDisposable
                 return;
             }
 
+            var transferId = context.Request.Query["transferId"].ToString();
+            if (string.IsNullOrWhiteSpace(transferId) || transferId.Length > 128)
+                transferId = Guid.NewGuid().ToString("N");
+
             var receiveFolder = GetReceivedFolder();
             var targetPath = GetUniquePath(receiveFolder, safeName);
 
@@ -256,8 +298,10 @@ public sealed class LocalDropServer : IAsyncDisposable
                 }
 
                 var info = new FileInfo(targetPath);
-                var received = new ReceivedFile(info.Name, info.FullName, info.Length, info.LastWriteTime);
+                var received = new ReceivedFile(transferId, info.Name, info.FullName, info.Length, info.LastWriteTime);
                 FileReceived?.Invoke(received);
+                TransferProgressChanged?.Invoke(new TransferProgress(
+                    transferId, "phone-to-pc", info.Name, info.Length, info.Length, 0, "completed"));
                 StatusChanged?.Invoke("Received " + info.Name);
 
                 context.Response.StatusCode = StatusCodes.Status201Created;
