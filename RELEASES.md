@@ -1,5 +1,15 @@
 # Release notes
 
+## v1.0.3 — Unified desktop conversation and live transfers
+
+- Rebuilt the Windows UI as a maximized, full-width conversation instead of separate chat and file panels.
+- Added a polished dark charcoal and crimson theme with the HADOC LocalDrop app icon.
+- Displayed phone-to-PC received files as chat cards with progress, transfer speed, and an Open file action.
+- Displayed PC-to-phone shared files in the same Windows conversation and mirrored phone download progress back to the PC.
+- Added live progress reporting for both transfer directions.
+- Added multi-line chat on Windows and mobile using Enter / Shift+Enter conventions.
+- Kept the phone pairing screen visible only until QR connection succeeds.
+
 ## v1.0.2 — Custom Windows app icon
 
 - Added a custom black-and-red HADOC LocalDrop brand icon.

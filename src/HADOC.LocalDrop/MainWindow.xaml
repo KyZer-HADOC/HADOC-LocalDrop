@@ -249,6 +249,19 @@
                                     </StackPanel>
                                 </Border>
                             </Grid>
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding IsMine}" Value="True">
+                                    <Setter TargetName="TextBubble" Property="HorizontalAlignment" Value="Right"/>
+                                    <Setter TargetName="TextBubble" Property="Background" Value="#2A1922"/>
+                                    <Setter TargetName="TextBubble" Property="BorderBrush" Value="#71313D"/>
+                                    <Setter TargetName="FileBubble" Property="HorizontalAlignment" Value="Right"/>
+                                    <Setter TargetName="FileBubble" Property="Background" Value="#211B26"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsFile}" Value="True">
+                                    <Setter TargetName="TextBubble" Property="Visibility" Value="Collapsed"/>
+                                    <Setter TargetName="FileBubble" Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </DataTemplate.Triggers>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                     <ListBox.ItemContainerStyle>

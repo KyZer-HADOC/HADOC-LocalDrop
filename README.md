@@ -23,8 +23,10 @@ The Windows app, taskbar entry, and installer use a custom black-and-red HADOC L
 - QR pairing from the Windows PC app to a phone browser
 - One unified chat and file-sharing workspace after connection
 - Send messages between the PC and the connected phone
-- Phone → PC uploads with live progress and a visible received-files list on Windows
-- PC → Phone downloads for files added in the Windows app
+- Phone → PC uploads appear as file cards in the Windows conversation, with live progress and an **Open file** action when received
+- PC → Phone files appear in the same conversation and can be downloaded from the phone with a visible download button
+- Transfer progress and live speed updates are reported to the Windows app for both directions
+- Multi-line chat messages using line breaks
 - Multiple file selection from the phone
 - Files received on the PC are saved to `Downloads\HADOC LocalDrop\Received`
 - Private local network transfer over Wi-Fi or Ethernet
@@ -54,20 +56,21 @@ The phone does not need a separate app installation. The PC app shows the connec
 1. In the phone workspace, tap **Add files** beside the message box.
 2. Select one or more files.
 3. Watch the upload progress in the conversation.
-4. After completion, the received file appears in the Windows app under **Received on PC**.
+4. The file appears in the same Windows conversation while it uploads, with a live progress bar and speed.
+5. After completion, the Windows conversation shows **Received on this PC** and an **Open file** button.
 
 Received files are saved in:
 
 `%USERPROFILE%\Downloads\HADOC LocalDrop\Received`
 
-Use **Open folder** in the Windows app to view them in File Explorer.
+Use **Received folder** in the Windows app to view them in File Explorer.
 
 ### PC → Phone
 
 1. In the Windows connected workspace, click **Add files**.
 2. Select one or more files.
 3. The files appear in the phone conversation as downloadable items.
-4. Tap **Download to phone** beside the file.
+4. Tap **Download to phone** beside the file. Its progress and speed are mirrored in the Windows conversation.
 
 The phone checks for newly shared PC files while the workspace is open.
 
