@@ -30,11 +30,49 @@ public sealed class LocalDropServer : IAsyncDisposable
     public event Action<ChatMessage>? ChatReceived;
     public event Action<string>? DeviceConnected;
     public event Action? DeviceDisconnected;
-    public event Action<string>? FileReceived;
+    public event Action<ReceivedFile>? FileReceived;
     public event Action<string>? StatusChanged;
 
     public bool IsRunning => _app is not null;
     public bool IsPhoneConnected => !_sockets.IsEmpty;
+    public bool IsPaired => _pairedDeviceId is not null;
+
+    public string GetReceivedFolder()
+    {
+        var folder = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+            "Downloads", "HADOC LocalDrop", "Received");
+        Directory.CreateDirectory(folder);
+        return folder;
+    }
+
+    public IReadOnlyList<ReceivedFile> GetReceivedFiles()
+    {
+        var folder = GetReceivedFolder();
+        return Directory.EnumerateFiles(folder)
+            .Select(path => new FileInfo(path))
+            .Where(info => info.Exists)
+            .OrderByDescending(info => info.LastWriteTimeUtc)
+            .Select(info => new ReceivedFile(info.Name, info.FullName, info.Length, info.LastWriteTime))
+            .ToArray();
+    }
+
+    public async Task DisconnectPhoneAsync()
+    {
+        _pairedDeviceId = null;
+        _pairedDeviceName = "Waiting for phone";
+        foreach (var socket in _sockets.Values)
+        {
+            try
+            {
+                if (socket.State == WebSocketState.Open)
+                    await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Disconnected by PC", CancellationToken.None);
+            }
+            catch (WebSocketException) { }
+        }
+        DeviceDisconnected?.Invoke();
+        StatusChanged?.Invoke("Phone disconnected");
+    }
 
     public IReadOnlyList<string> GetLocalAddresses()
     {
@@ -187,11 +225,12 @@ public sealed class LocalDropServer : IAsyncDisposable
             if (!IsAuthorized(context))
             {
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                await context.Response.WriteAsync("Pairing expired. Scan the QR code again.");
                 return;
             }
 
             var requestedName = context.Request.Query["name"].ToString();
-            var safeName = Path.GetFileName(requestedName);
+            var safeName = Path.GetFileName(requestedName.Replace('/', '\\'));
             if (string.IsNullOrWhiteSpace(safeName) || safeName is "." or "..")
             {
                 context.Response.StatusCode = StatusCodes.Status400BadRequest;
@@ -199,28 +238,53 @@ public sealed class LocalDropServer : IAsyncDisposable
                 return;
             }
 
-            var receiveFolder = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                "Downloads", "HADOC LocalDrop", "Received");
-            Directory.CreateDirectory(receiveFolder);
+            var receiveFolder = GetReceivedFolder();
             var targetPath = GetUniquePath(receiveFolder, safeName);
 
-            await using (var output = new FileStream(targetPath, FileMode.CreateNew, FileAccess.Write,
-                FileShare.None, 1024 * 1024, FileOptions.Asynchronous | FileOptions.SequentialScan))
+            try
             {
-                await context.Request.Body.CopyToAsync(output, context.RequestAborted);
-            }
+                await using (var output = new FileStream(
+                    targetPath,
+                    FileMode.CreateNew,
+                    FileAccess.Write,
+                    FileShare.None,
+                    bufferSize: 1024 * 1024,
+                    options: FileOptions.Asynchronous | FileOptions.SequentialScan))
+                {
+                    await context.Request.Body.CopyToAsync(output, context.RequestAborted);
+                    await output.FlushAsync(context.RequestAborted);
+                }
 
-            var info = new FileInfo(targetPath);
-            FileReceived?.Invoke($"{info.Name} ({SharedFile.FormatSize(info.Length)})");
-            StatusChanged?.Invoke($"Received {info.Name}");
-            await context.Response.WriteAsJsonAsync(new
+                var info = new FileInfo(targetPath);
+                var received = new ReceivedFile(info.Name, info.FullName, info.Length, info.LastWriteTime);
+                FileReceived?.Invoke(received);
+                StatusChanged?.Invoke("Received " + info.Name);
+
+                context.Response.StatusCode = StatusCodes.Status201Created;
+                await context.Response.WriteAsJsonAsync(new
+                {
+                    ok = true,
+                    name = received.Name,
+                    size = received.Size,
+                    sizeLabel = received.SizeLabel,
+                    savedTo = receiveFolder
+                });
+            }
+            catch (OperationCanceledException)
             {
-                ok = true,
-                name = info.Name,
-                size = info.Length,
-                savedTo = receiveFolder
-            });
+                try { if (File.Exists(targetPath)) File.Delete(targetPath); } catch { }
+                throw;
+            }
+            catch (Exception ex)
+            {
+                try { if (File.Exists(targetPath)) File.Delete(targetPath); } catch { }
+                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                await context.Response.WriteAsJsonAsync(new
+                {
+                    ok = false,
+                    error = "Could not save the uploaded file: " + ex.Message
+                });
+            }
         });
 
         app.MapPost("/api/disconnect", async context =>
@@ -231,19 +295,7 @@ public sealed class LocalDropServer : IAsyncDisposable
                 return;
             }
 
-            _pairedDeviceId = null;
-            _pairedDeviceName = "Waiting for phone";
-            foreach (var item in _sockets.ToArray())
-            {
-                try
-                {
-                    if (item.Value.State == WebSocketState.Open)
-                        await item.Value.CloseAsync(WebSocketCloseStatus.NormalClosure, "Disconnected by PC", CancellationToken.None);
-                }
-                catch (WebSocketException) { }
-            }
-
-            DeviceDisconnected?.Invoke();
+            await DisconnectPhoneAsync();
             StatusChanged?.Invoke("Phone disconnected");
             await context.Response.WriteAsJsonAsync(new { ok = true });
         });
@@ -306,8 +358,11 @@ public sealed class LocalDropServer : IAsyncDisposable
                 _sockets.TryRemove(socketId, out _);
                 if (_sockets.IsEmpty)
                 {
-                    DeviceDisconnected?.Invoke();
-                    StatusChanged?.Invoke("Phone is paired but not currently connected");
+                    StatusChanged?.Invoke(_pairedDeviceId is null
+                        ? "Phone disconnected"
+                        : "Phone connection paused — waiting for phone");
+                    if (_pairedDeviceId is null)
+                        DeviceDisconnected?.Invoke();
                 }
             }
         });
