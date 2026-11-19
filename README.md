@@ -8,6 +8,10 @@ HADOC LocalDrop turns your Windows PC into a private local transfer hub. Scan th
   <strong>Windows 10 / 11 · PC ↔ Mobile · Wi-Fi / LAN · Offline-ready</strong>
 </p>
 
+## App icon
+
+The Windows app, taskbar entry, and installer use a custom black-and-red HADOC LocalDrop icon. The Windows build generates the icon from `scripts/Generate-Icon.ps1` so the same artwork is embedded in the app and Setup.exe.
+
 ## Download
 
 **[Download HADOC LocalDrop Setup.exe](https://github.com/KyZer-HADOC/HADOC-LocalDrop/releases/latest/download/HADOC-LocalDrop-Setup.exe)**
@@ -102,6 +106,12 @@ Requirements:
 - Windows 10/11 x64
 - .NET 8 SDK
 - Inno Setup 6 (to create the installer)
+
+Generate the icon before building:
+
+```powershell
+.\scripts\Generate-Icon.ps1
+```
 
 Restore:
 
