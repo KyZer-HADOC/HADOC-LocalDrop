@@ -1,7 +1,7 @@
 <Window x:Class="HADOC.LocalDrop.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="HADOC LocalDrop" Height="820" Width="1220"
+        Title="HADOC LocalDrop" Icon="pack://application:,,,/Assets/HADOC-LocalDrop.ico" Height="820" Width="1220"
         MinHeight="700" MinWidth="1020"
         WindowStartupLocation="CenterScreen"
         Background="#080B11" Foreground="#F3F6FA"
@@ -92,9 +92,10 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <Border Width="46" Height="46" CornerRadius="14" Background="#E54852" Margin="0,0,13,0">
-                    <TextBlock Text="LD" Foreground="White" FontSize="17" FontWeight="ExtraBold"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Border Width="46" Height="46" CornerRadius="14" Background="#0B0D12"
+                        BorderBrush="#67313B" BorderThickness="1" Margin="0,0,13,0">
+                    <Image Source="pack://application:,,,/Assets/HADOC-LocalDrop.ico"
+                           Stretch="Uniform" Margin="1"/>
                 </Border>
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock Text="HADOC LocalDrop" FontSize="22" FontWeight="Bold"/>

@@ -1,5 +1,5 @@
 #define MyAppName "HADOC LocalDrop"
-#define MyAppVersion "1.0.1"
+#define MyAppVersion "1.0.2"
 #define MyAppPublisher "KyZer_HADOC"
 #define MyAppExeName "HADOC.LocalDrop.exe"
 #define PublishDir "..\src\HADOC.LocalDrop\bin\Release\net8.0-windows\win-x64\publish"
@@ -21,6 +21,7 @@ SolidCompression=yes
 WizardStyle=modern
 PrivilegesRequired=admin
 UninstallDisplayIcon={app}\{#MyAppExeName}
+SetupIconFile=..\src\HADOC.LocalDrop\Assets\HADOC-LocalDrop.ico
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional shortcuts:"; Flags: unchecked
