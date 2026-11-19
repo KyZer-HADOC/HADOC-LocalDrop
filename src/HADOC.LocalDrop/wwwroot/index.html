@@ -2,79 +2,81 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#0b0e14">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#090b10">
   <title>HADOC LocalDrop</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <main class="shell">
-    <header class="topbar">
-      <div class="brand-mark">LD</div>
-      <div class="brand-copy">
-        <strong>HADOC <span>LocalDrop</span></strong>
-        <small>PC ↔ MOBILE · LOCAL NETWORK</small>
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+
+  <main class="app-shell">
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-icon"><span>LD</span></div>
+        <div class="brand-text">
+          <strong>HADOC <em>LocalDrop</em></strong>
+          <small>MOVE FILES. NOT THROUGH THE CLOUD.</small>
+        </div>
       </div>
-      <div class="connection-pill"><i></i><span id="connectionText">Connecting</span></div>
+      <div id="connectionBadge" class="connection-badge"><i></i><span id="connectionText">CONNECTING</span></div>
     </header>
-    <section id="pairingPanel" class="panel pairing-panel">
-      <div class="pulse-icon">↔</div>
-      <h1>Connect to your PC</h1>
-      <p id="pairingMessage">Checking your secure LocalDrop connection…</p>
-      <div class="hint">Open this page by scanning the QR code shown in the LocalDrop Windows app.</div>
-      <button id="retryButton" class="button primary hidden">Try again</button>
+
+    <section id="connectScreen" class="connect-screen">
+      <div class="connect-orbit">
+        <div class="orbit-ring ring-one"></div>
+        <div class="orbit-ring ring-two"></div>
+        <div class="connect-device device-phone">▯</div>
+        <div class="connect-device device-pc">▰</div>
+        <div class="connect-link">↔</div>
+      </div>
+      <div class="connect-copy">
+        <span class="eyebrow">PRIVATE LOCAL CONNECTION</span>
+        <h1>Connect to<br><span>your PC.</span></h1>
+        <p id="pairingMessage">Opening your secure LocalDrop session…</p>
+        <div class="connect-note"><span class="signal-dot"></span> Same Wi-Fi or hotspot · Internet not required</div>
+        <button id="retryButton" class="button button-primary hidden" type="button">Try connection again</button>
+      </div>
+      <div class="connect-footer"><span>HADOC LocalDrop</span><span>PC ↔ MOBILE ONLY</span></div>
     </section>
-    <section id="workspace" class="hidden">
-      <div class="welcome-row">
+
+    <section id="workspace" class="workspace hidden">
+      <div class="workspace-heading">
         <div>
           <span class="eyebrow">CONNECTED WORKSPACE</span>
           <h1 id="pcTitle">Your PC</h1>
-          <p class="muted">Your files move directly across your local network.</p>
+          <p>Send anything across your local network.</p>
         </div>
-        <div class="secure-tag">● PRIVATE LINK</div>
+        <div class="live-chip"><i></i> DIRECT LINK</div>
       </div>
-      <nav class="tabs" aria-label="Workspace">
-        <button class="tab active" data-tab="filesPanel">↕ <span>Files</span></button>
-        <button class="tab" data-tab="chatPanel">▤ <span>Chat</span></button>
-      </nav>
-      <section id="filesPanel" class="tab-panel">
-        <div class="panel section-panel">
-          <div class="section-heading">
-            <div><span class="eyebrow">PHONE → PC</span><h2>Send to computer</h2></div>
-            <span class="round-icon">↑</span>
-          </div>
-          <label id="dropZone" class="drop-zone">
-            <input id="fileInput" type="file" multiple>
-            <span class="upload-icon">＋</span>
-            <strong>Choose files or drop them here</strong>
-            <small>Files are saved in Downloads / HADOC LocalDrop / Received</small>
-          </label>
-          <div id="uploadList" class="transfer-list"></div>
+
+      <div id="messageStream" class="message-stream" aria-live="polite">
+        <div class="day-divider"><span>LOCAL SESSION</span></div>
+        <div class="system-message"><span class="system-icon">✓</span><span>You're connected. Files stay on your local network.</span></div>
+      </div>
+
+      <div class="composer-wrap">
+        <div class="composer-hint">MESSAGE OR SHARE A FILE</div>
+        <form id="chatForm" class="composer">
+          <input id="chatInput" type="text" maxlength="2000" autocomplete="off"
+                 placeholder="Type a message..." aria-label="Type a message">
+          <button class="send-button" type="submit" aria-label="Send message" title="Send">↑</button>
+          <input id="fileInput" type="file" multiple hidden>
+          <button id="addFilesButton" class="add-files-button" type="button">
+            <span class="add-icon">＋</span><span>Add files</span>
+          </button>
+        </form>
+        <div class="composer-footer">
+          <span><i class="lock-icon">◆</i> LOCAL NETWORK TRANSFER</span>
+          <span id="transferSummary">READY</span>
         </div>
-        <div class="panel section-panel">
-          <div class="section-heading">
-            <div><span class="eyebrow">PC → PHONE</span><h2>Shared from your PC</h2></div>
-            <button id="refreshFiles" class="icon-button" aria-label="Refresh files">↻</button>
-          </div>
-          <div id="sharedFiles" class="file-list"><div class="empty-state">No files have been added on the PC yet.</div></div>
-        </div>
-      </section>
-      <section id="chatPanel" class="tab-panel hidden">
-        <div class="panel chat-panel">
-          <div class="section-heading">
-            <div><span class="eyebrow">LOCAL MESSAGES</span><h2>Chat with your PC</h2></div>
-            <span class="round-icon">•••</span>
-          </div>
-          <div id="messages" class="messages"><div class="empty-state">Say hello to your PC.</div></div>
-          <form id="chatForm" class="chat-form">
-            <input id="chatInput" maxlength="2000" autocomplete="off" placeholder="Write a message…" aria-label="Message">
-            <button class="button primary" type="submit">Send</button>
-          </form>
-        </div>
-      </section>
+      </div>
     </section>
-    <footer><span>HADOC LocalDrop</span><span>No cloud · No internet required on the local network</span></footer>
+
+    <footer class="app-footer"><span>HADOC <b>LocalDrop</b></span><span>BUILT BY KyZer_HADOC</span></footer>
   </main>
+
   <script src="/app.js"></script>
 </body>
 </html>
