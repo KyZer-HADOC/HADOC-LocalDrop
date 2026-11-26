@@ -47,7 +47,7 @@ The Windows app, taskbar entry, and installer use a custom black-and-red HADOC L
 7. Approve Android's system Wi-Fi join prompt. The app requests a temporary router connection, then opens the PC workspace.
 8. Disconnect from the workspace when finished; LocalDrop releases its temporary Wi-Fi network request so Android can restore the phone's previous network.
 
-The phone does not need a separate app installation. The PC app shows the connected phone workspace after pairing.
+Use the HADOC LocalDrop Android app for automatic temporary router Wi-Fi joining. The browser-based companion remains available when the phone is already connected to the same local network as the PC.
 
 ## Send and receive files
 
@@ -76,7 +76,7 @@ The phone checks for newly shared PC files while the workspace is open.
 
 ## Use without internet
 
-The phone interface is served directly by the Windows PC. Pairing, chat, and file transfer use the local network and do not send file data through cloud storage.
+The phone workspace is served directly by the Windows PC for browser-based same-network pairing; the native Android app also supports temporary Wi-Fi joining from the PC QR. Pairing, chat, and file transfer use the local network and do not send file data through cloud storage.
 
 Supported arrangements:
 - PC connected to the router by Ethernet and phone initially on mobile data or another Wi-Fi network. Scan the PC QR inside the HADOC LocalDrop Android app; Android will ask permission to join the router using the credentials carried in the QR.
