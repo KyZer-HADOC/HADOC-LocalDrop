@@ -2,6 +2,8 @@
 
 ## v1.0.4 — One-scan temporary router Wi-Fi pairing
 
+Windows release version: **1.0.4**.
+
 - Added router Wi-Fi SSID and password fields to the Windows app.
 - Saved the router password encrypted with Windows DPAPI for the current Windows account.
 - Included the router Wi-Fi details in the private one-time pairing QR.
