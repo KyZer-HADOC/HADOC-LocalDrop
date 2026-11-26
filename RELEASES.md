@@ -1,5 +1,16 @@
 # Release notes
 
+## v1.0.4 — One-scan temporary router Wi-Fi pairing
+
+- Added router Wi-Fi SSID and password fields to the Windows app.
+- Saved the router password encrypted with Windows DPAPI for the current Windows account.
+- Included the router Wi-Fi details in the private one-time pairing QR.
+- Updated the Android companion app to request a temporary Android Wi-Fi connection from the scanned PC QR, then route all LocalDrop HTTP and WebSocket traffic through that selected network.
+- The Android app releases its temporary Wi-Fi network request when the PC session ends.
+- Kept the existing PC Ethernet/LAN server and chat/file-sharing flow.
+
+**Security note:** the QR contains the router Wi-Fi passphrase and one-time pairing token. Only scan/share it with a trusted device; do not publish it. Android 10 or newer and the HADOC LocalDrop Android app are required for automatic temporary Wi-Fi joining.
+
 ## v1.0.3 — Unified desktop conversation and live transfers
 
 - Rebuilt the Windows UI as a maximized, full-width conversation instead of separate chat and file panels.
