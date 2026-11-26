@@ -8,12 +8,13 @@
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <AssemblyName>HADOC.LocalDrop</AssemblyName>
     <RootNamespace>HADOC.LocalDrop</RootNamespace>
-    <Version>1.0.3</Version>
+    <Version>1.0.4</Version>
     <ApplicationIcon>Assets\HADOC-LocalDrop.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="QRCoder" Version="1.6.0" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Assets\HADOC-LocalDrop.ico" />
