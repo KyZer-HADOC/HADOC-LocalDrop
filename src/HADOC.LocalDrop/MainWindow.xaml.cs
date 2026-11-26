@@ -236,7 +236,7 @@ public partial class MainWindow : Window
         }
 
         _currentUrl = _server.CreatePairUrl(address, ssid, password);
-        UrlText.Text = _currentUrl;
+        UrlText.Text = "Private pairing QR ready. Scan with the HADOC LocalDrop Android app to request a temporary router connection.";
 
         using var generator = new QRCodeGenerator();
         using var data = generator.CreateQrCode(_currentUrl, QRCodeGenerator.ECCLevel.Q);
@@ -252,7 +252,7 @@ public partial class MainWindow : Window
 
         QrImage.Source = bitmap;
         QrPlaceholder.Visibility = Visibility.Collapsed;
-        StatusText.Text = "Waiting for your phone to scan the QR code...";
+        StatusText.Text = "Waiting for your phone · QR contains temporary Wi-Fi join details. Keep it private.";
     }
 
     private void CopyLink_Click(object sender, RoutedEventArgs e)
@@ -265,7 +265,7 @@ public partial class MainWindow : Window
         }
 
         Clipboard.SetText(_currentUrl);
-        StatusText.Text = "Connection link copied. Keep it private.";
+        StatusText.Text = "Private pairing link copied. It contains your router Wi-Fi details; keep it private.";
     }
 
     private void AddFiles_Click(object sender, RoutedEventArgs e)
