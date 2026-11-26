@@ -140,11 +140,18 @@
                                 <TextBlock Text="ROUTER WI-FI DETAILS · ONE-TIME PHONE JOIN"
                                            Foreground="#FF858B" FontSize="9" FontWeight="Bold"
                                            Margin="0,13,0,6"/>
+                                <TextBlock Text="Wi-Fi name (SSID)" Foreground="#A7B3C4"
+                                           FontSize="10" Margin="0,0,0,5"/>
                                 <TextBox x:Name="RouterSsidBox" Height="36" Padding="10,8"
+                                         Foreground="#F4F6FB" Background="#0B1018"
+                                         BorderBrush="#303D51" BorderThickness="1"
                                          TextChanged="RouterWifi_Changed"
                                          ToolTip="Enter the Wi-Fi name (SSID) used by your phone."/>
+                                <TextBlock Text="Wi-Fi password" Foreground="#A7B3C4"
+                                           FontSize="10" Margin="0,8,0,5"/>
                                 <PasswordBox x:Name="RouterPasswordBox" Height="36" Padding="10,8"
-                                             Margin="0,7,0,0"
+                                             Foreground="#F4F6FB" Background="#0B1018"
+                                             BorderBrush="#303D51" BorderThickness="1"
                                              PasswordChanged="RouterWifi_Changed"
                                              ToolTip="The Wi-Fi password is protected on this PC and included in its private pairing QR."/>
                                 <TextBlock x:Name="UrlText" Text="Enter the router Wi-Fi name and password to create a private QR."
