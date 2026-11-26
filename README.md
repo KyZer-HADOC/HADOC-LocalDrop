@@ -41,11 +41,11 @@ The Windows app, taskbar entry, and installer use a custom black-and-red HADOC L
 1. Download `HADOC-LocalDrop-Setup.exe` from the latest release.
 2. Run the installer on a Windows 10 or Windows 11 x64 PC.
 3. Launch HADOC LocalDrop.
-4. Connect the PC and phone to the same Wi-Fi network, or connect one device to the other's hotspot.
-5. Click **Start LocalDrop** in the Windows app.
-6. Select the network address that the phone can reach.
-7. Scan the QR code with the phone camera and open the link.
-8. After pairing, the phone opens the single workspace for chat and file sharing.
+4. Enter the router Wi-Fi name (SSID) and WPA/WPA2 password in the Windows app. These details are saved encrypted for the current Windows user.
+5. Click **Start LocalDrop** and select the PC network address connected to that router (Ethernet is supported).
+6. Open the **HADOC LocalDrop Android app** on the phone and scan the Windows QR from its **Connect to PC** option.
+7. Approve Android's system Wi-Fi join prompt. The app requests a temporary router connection, then opens the PC workspace.
+8. Disconnect from the workspace when finished; LocalDrop releases its temporary Wi-Fi network request so Android can restore the phone's previous network.
 
 The phone does not need a separate app installation. The PC app shows the connected phone workspace after pairing.
 
@@ -79,12 +79,12 @@ The phone checks for newly shared PC files while the workspace is open.
 The phone interface is served directly by the Windows PC. Pairing, chat, and file transfer use the local network and do not send file data through cloud storage.
 
 Supported arrangements:
-- PC and phone connected to the same Wi-Fi router, even if the router has no internet.
+- PC connected to the router by Ethernet and phone initially on mobile data or another Wi-Fi network. Scan the PC QR inside the HADOC LocalDrop Android app; Android will ask permission to join the router using the credentials carried in the QR.
+- PC and phone already connected to the same Wi-Fi router, even if the router has no internet. Older QR links without Wi-Fi details also work this way.
 - Windows Mobile Hotspot enabled on the PC and the phone connected to it.
 - Phone hotspot enabled and the PC connected to that hotspot.
-- PC connected by Ethernet and phone connected to the same router's Wi-Fi.
 
-If the PC has more than one network adapter, select the address that belongs to the network shared with the phone.
+If the PC has more than one network adapter, select the address that belongs to the router the phone should join. Automatic temporary router joining requires Android 10 or newer and the HADOC LocalDrop Android app; scanning in a generic camera/browser does not initiate the app-scoped Wi-Fi connection.
 
 ## Speed and connectivity
 
@@ -95,7 +95,8 @@ Bluetooth is not used as a speed booster. Adding Bluetooth to an active Wi-Fi tr
 ## Security
 
 - A new random pairing token is generated whenever the PC server starts.
-- Treat the QR code and connection URL like a password. Only scan/share it with a device you trust.
+- Treat the QR code and connection URL like a password. The new QR includes the router Wi-Fi passphrase as well as the one-time LocalDrop token. Only scan/share it with a device you trust, and do not post or forward it publicly.
+- The Windows app stores the router passphrase encrypted with Windows DPAPI for the current Windows account.
 - Use a trusted private network.
 - If Windows Firewall asks, allow LocalDrop on **Private networks** only.
 - Stop LocalDrop when you finish sharing. Stopping the server invalidates the active pairing token.
