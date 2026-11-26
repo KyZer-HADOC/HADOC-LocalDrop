@@ -2,6 +2,9 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -27,6 +30,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         DataContext = this;
+        LoadRouterWifiSettings();
 
         _server.StatusChanged += message =>
             Dispatcher.Invoke(() => StatusText.Text = message);
@@ -80,6 +84,14 @@ public partial class MainWindow : Window
             }
             else
             {
+                var routerSsid = RouterSsidBox.Text.Trim();
+                var routerPassword = RouterPasswordBox.Password;
+                if (string.IsNullOrWhiteSpace(routerSsid))
+                    throw new InvalidOperationException("Enter the router Wi-Fi name (SSID).");
+                if (routerPassword.Length < 8 || routerPassword.Length > 63)
+                    throw new InvalidOperationException("Enter the router's WPA/WPA2 password (8–63 characters).");
+                SaveRouterWifiSettings(routerSsid, routerPassword);
+
                 await _server.StartAsync();
                 var addresses = _server.GetLocalAddresses();
                 if (addresses.Count == 0)
@@ -133,12 +145,97 @@ public partial class MainWindow : Window
             RefreshQrCode();
     }
 
+    private void RouterWifi_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_server.IsRunning && AddressBox.SelectedItem is string)
+            RefreshQrCode();
+    }
+
+    private void LoadRouterWifiSettings()
+    {
+        try
+        {
+            var path = GetRouterSettingsPath();
+            if (!File.Exists(path)) return;
+
+            using var document = JsonDocument.Parse(File.ReadAllText(path));
+            var root = document.RootElement;
+            var ssid = root.GetProperty("ssid").GetString() ?? "";
+            var protectedPassword = Convert.FromBase64String(root.GetProperty("protectedPassword").GetString() ?? "");
+            var passwordBytes = ProtectedData.Unprotect(
+                protectedPassword, optionalEntropy: null, DataProtectionScope.CurrentUser);
+            try
+            {
+                RouterSsidBox.Text = ssid;
+                RouterPasswordBox.Password = Encoding.UTF8.GetString(passwordBytes);
+            }
+            finally
+            {
+                CryptographicOperations.ZeroMemory(passwordBytes);
+                CryptographicOperations.ZeroMemory(protectedPassword);
+            }
+        }
+        catch
+        {
+            RouterSsidBox.Text = "";
+            RouterPasswordBox.Password = "";
+        }
+    }
+
+    private static string GetRouterSettingsPath() =>
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "HADOC", "LocalDrop", "router-wifi.json");
+
+    private static void SaveRouterWifiSettings(string ssid, string password)
+    {
+        var folder = Path.GetDirectoryName(GetRouterSettingsPath())!;
+        Directory.CreateDirectory(folder);
+        var passwordBytes = Encoding.UTF8.GetBytes(password);
+        byte[] protectedPassword;
+        try
+        {
+            protectedPassword = ProtectedData.Protect(
+                passwordBytes, optionalEntropy: null, DataProtectionScope.CurrentUser);
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(passwordBytes);
+        }
+
+        try
+        {
+            var settings = JsonSerializer.Serialize(new
+            {
+                ssid,
+                protectedPassword = Convert.ToBase64String(protectedPassword)
+            });
+            File.WriteAllText(GetRouterSettingsPath(), settings);
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(protectedPassword);
+        }
+    }
+
     private void RefreshQrCode()
     {
         if (AddressBox.SelectedItem is not string address || !_server.IsRunning)
             return;
 
-        _currentUrl = _server.CreatePairUrl(address);
+        var ssid = RouterSsidBox.Text.Trim();
+        var password = RouterPasswordBox.Password;
+        if (string.IsNullOrWhiteSpace(ssid) || password.Length < 8 || password.Length > 63)
+        {
+            _currentUrl = null;
+            QrImage.Source = null;
+            QrPlaceholder.Visibility = Visibility.Visible;
+            QrPlaceholder.Children.OfType<TextBlock>().Last().Text =
+                "Enter the router Wi-Fi name and password to generate the pairing QR.";
+            UrlText.Text = "Router Wi-Fi details are required for automatic phone connection.";
+            return;
+        }
+
+        _currentUrl = _server.CreatePairUrl(address, ssid, password);
         UrlText.Text = _currentUrl;
 
         using var generator = new QRCodeGenerator();
