@@ -157,7 +157,7 @@
                                 <TextBlock x:Name="UrlText" Text="Enter the router Wi-Fi name and password to create a private QR."
                                            Foreground="#98A6B8" FontSize="10" TextWrapping="Wrap"
                                            Margin="1,9,1,0"/>
-                                <TextBlock Text="Saved encrypted for your Windows account. The QR contains the Wi-Fi details; keep it private."
+                                <TextBlock Text="Saved encrypted for your Windows account when you start LocalDrop. The QR contains the Wi-Fi details; keep it private."
                                            Foreground="#738197" FontSize="9" TextWrapping="Wrap"
                                            Margin="1,6,1,0"/>
                             </StackPanel>
