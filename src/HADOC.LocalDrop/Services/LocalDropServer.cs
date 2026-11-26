@@ -424,10 +424,21 @@ public sealed class LocalDropServer : IAsyncDisposable
         }
     }
 
-    public string CreatePairUrl(string ipAddress)
+    public string CreatePairUrl(string ipAddress, string wifiSsid, string wifiPassword)
     {
         if (_app is null) throw new InvalidOperationException("Start the LocalDrop server first.");
-        return $"http://{ipAddress}:{_port}/?token={Uri.EscapeDataString(_token)}";
+        if (string.IsNullOrWhiteSpace(wifiSsid))
+            throw new ArgumentException("A router Wi-Fi name is required.", nameof(wifiSsid));
+        if (wifiPassword.Length < 8 || wifiPassword.Length > 63)
+            throw new ArgumentException("The WPA/WPA2 Wi-Fi password must be 8–63 characters.", nameof(wifiPassword));
+
+        // The QR is private pairing material: Android uses these values with
+        // WifiNetworkSpecifier so the phone can request a temporary router join.
+        // Keep the QR private; its URL contains the Wi-Fi passphrase.
+        return $"http://{ipAddress}:{_port}/?token={Uri.EscapeDataString(_token)}" +
+            $"&wifiSsid={Uri.EscapeDataString(wifiSsid)}" +
+            $"&wifiPassword={Uri.EscapeDataString(wifiPassword)}" +
+            "&wifiSecurity=WPA2";
     }
 
     public SharedFile AddSharedFile(string path)
